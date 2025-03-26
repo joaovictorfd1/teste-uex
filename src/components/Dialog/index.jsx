@@ -36,7 +36,7 @@ export const DialogComponent = ({
     const formmattedCEP = formatCEP(value);
     handleInputChange({ target: { name: 'cep', value: formmattedCEP } });
   }
-
+  
   const isEdit = useMemo(() => {
     return !!formData.id;
   }, [formData])

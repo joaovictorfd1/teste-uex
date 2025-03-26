@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { 
   Box, 
   Card, 
@@ -20,8 +20,7 @@ import {
   Search as SearchIcon, 
   Add as AddIcon, 
   Edit as EditIcon, 
-  Delete as DeleteIcon, 
-  Visibility as VisibilityIcon 
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { getFirstNameAndConvertToUpperCase } from '../../helpers';
 

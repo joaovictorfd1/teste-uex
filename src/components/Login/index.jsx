@@ -68,20 +68,25 @@ export default function SignIn(props) {
   const handleSubmit = (event) => {
     event.preventDefault();
     if (emailError || passwordError) {
-      event.preventDefault();
       return;
     }
+  
     const data = new FormData(event.currentTarget);
-    const user = JSON.parse(localStorage.getItem('users'))
-    const findUser = user.filter((user) => (user.email === data.get('email')) && (user.password === data.get('password')));
-
-    if (findUser.length === 1) {
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+  
+    // Buscar o usuário correspondente
+    const foundUser = users.find(
+      (user) =>
+        user.email === data.get('email') && user.password === data.get('password')
+    );
+  
+    if (foundUser) {
       toast.success('Login realizado com sucesso!');
-      localStorage.setItem('loggedUser', JSON.stringify(findUser[0]));
+      localStorage.setItem('loggedUser', JSON.stringify(foundUser)); // Corrigido
       navigate('/dashboard');
       return;
     }
-
+  
     toast.error('Email ou senha inválidos.');
   };
 

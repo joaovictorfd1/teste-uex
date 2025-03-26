@@ -107,8 +107,8 @@ export default function SignUp(props) {
   };
 
   const handleSubmit = (event) => {
+    event.preventDefault();
     if (nameError || emailError || passwordError) {
-      event.preventDefault();
       return;
     }
     const data = new FormData(event.currentTarget);
@@ -118,6 +118,7 @@ export default function SignUp(props) {
 
     if (arrayLocalStorage.find((user) => user.email === data.get('email'))) {
       toast.error('Email já cadastrado.');
+      return;
     }
 
     arrayLocalStorage.push({ nome: data.get('name'), email: data.get('email'), password: data.get('password'), id });
@@ -132,6 +133,7 @@ export default function SignUp(props) {
 
   return (
     <>
+      <Toaster position="top-right" />
       <CssBaseline enableColorScheme />
       <SignUpContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">

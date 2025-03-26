@@ -13,12 +13,6 @@ const Dashboard = () => {
 
   const navigate = useNavigate();
 
-  // @TODO: Edição -> Feito
-  // @TODO: Exclusão de contato -> Feito
-  // @TODO: Clicar na tabela e abrir o mapa com as coordenadas do contato -> Feito
-  // @TODO: Reformular o form para adicionar uma forma de endereço em tempo real.
-  // @TODO: Adicionar alertas para validações e erros. -> Feito
-
   const userLogged = JSON.parse(localStorage.getItem('loggedUser')) || null;
   const { id } = userLogged;
   const arrayContactsUserLocalStorage = JSON.parse(localStorage?.getItem(`contacts_user_${id}`)) || [];
@@ -43,7 +37,7 @@ const Dashboard = () => {
     longitude: '',
     telefone: '',
     cpf: '',
-    id: Math.random(),
+    id: '',
   });
 
   const handleCloseDialog = () => {
@@ -106,6 +100,7 @@ const Dashboard = () => {
     event.preventDefault();
 
     const userLogged = JSON.parse(localStorage.getItem('loggedUser'));
+    const generatedId = Math.random();
     const { id } = userLogged;
 
     const arrayContactsUsers = JSON.parse(localStorage.getItem(`contacts_user_${id}`)) || [];
@@ -117,7 +112,10 @@ const Dashboard = () => {
       arrayContactsUsers[existingContactIndex] = formData;
     } else {
       // Adiciona um novo contato
-      arrayContactsUsers.push(formData);
+      arrayContactsUsers.push({
+        ...formData,
+        id: generatedId,
+      });
     }
 
     // Salva a lista atualizada no localStorage
