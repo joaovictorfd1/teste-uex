@@ -1,10 +1,10 @@
 import * as React from 'react';
+import toast, { Toaster } from 'react-hot-toast';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
-import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
@@ -73,18 +73,16 @@ export default function SignIn(props) {
     }
     const data = new FormData(event.currentTarget);
     const user = JSON.parse(localStorage.getItem('users'))
-    const findUser = user.filter((user) => user.email === data.get('email') && user.password === data.get('password'));
+    const findUser = user.filter((user) => (user.email === data.get('email')) && (user.password === data.get('password')));
 
     if (findUser.length === 1) {
-      localStorage.setItem('loggedUser', JSON.stringify(findUser));
+      toast.success('Login realizado com sucesso!');
+      localStorage.setItem('loggedUser', JSON.stringify(findUser[0]));
       navigate('/dashboard');
       return;
     }
 
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+    toast.error('Email ou senha inválidos.');
   };
 
   const validateInputs = () => {
@@ -116,6 +114,7 @@ export default function SignIn(props) {
 
   return (
     <>
+      <Toaster position="top-right" />
       <CssBaseline enableColorScheme />
       <SignInContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
@@ -172,6 +171,7 @@ export default function SignIn(props) {
               />
             </FormControl>
             <Button
+              color='success'
               type="submit"
               fullWidth
               variant="contained"
@@ -180,9 +180,10 @@ export default function SignIn(props) {
               Acessar
             </Button>
             <Button
+              color='secondary'
               type="button"
               fullWidth
-              variant="contained"
+              variant="outilined"
               onClick={() => navigate('/register' )}
             >
               Cadastrar

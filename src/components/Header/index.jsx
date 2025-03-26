@@ -1,39 +1,67 @@
-import React, { useState } from 'react';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
-import GoogleMapComponent from '../Maps';
+import React, { useState } from "react";
+import { AppBar, Toolbar, Typography, Button, Box, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
+import LogoutIcon from '@mui/icons-material/Logout';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { useNavigate } from "react-router-dom";
 
-export const Header = ({ title, isAdd, isMap, handleOpenDialog, onSearch, location }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+const Header = () => {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
 
-  const handleSearchChange = (event) => {
-    const value = event.target.value;
-    setSearchTerm(value);
-    if (onSearch) {
-      onSearch(value);
-    }
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+  const handleDeleteAccount = () => {
+
+    const { id } = JSON.parse(localStorage.getItem("loggedUser"));
+    const users = JSON.parse(localStorage.getItem("users"))
+
+    const removedUser = users.filter((user) => user.id !== id);
+    localStorage.setItem("users", JSON.stringify(removedUser));
+    navigate('/login');
+  };
+
+  const logout = () => {
+    localStorage.removeItem("loggedUser");
+    navigate('/login');
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: `${isAdd ? 'row' : 'column'}`, width: '100%', justifyContent: 'center', alignItems: 'center', gap: '20px', margin: '10px' }}>
-      <Typography variant="h5" color="textPrimary">{title}</Typography>
-      {isAdd && (
-        <>
-          <TextField 
-            variant="outlined" 
-            placeholder="Buscar..." 
-            size="small"
-            value={searchTerm}
-            onChange={handleSearchChange}
-          />
-          <Button variant="contained" color="primary" onClick={handleOpenDialog}>
-            Adicionar
+    <>
+      <AppBar position="static" sx={{ backgroundColor: "#1976d2" }}>
+        <Toolbar>
+          <Typography variant="h6" sx={{ flexGrow: 1 }}>
+            Bem-vindo!
+          </Typography>
+          <Box component="nav">
+            <Button type="button" color="inherit" sx={{ gap: '6px' }} onClick={handleOpen}>
+              Excluir conta <DeleteIcon fontSize="small" />
+            </Button>
+            <Button type="button" color="inherit" sx={{ gap: '6px' }} onClick={logout}>
+              Sair <LogoutIcon fontSize="small" />
+            </Button>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      {/* Diálogo de confirmação */}
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Confirmar exclusão</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Tem certeza de que deseja excluir sua conta? Esta ação não pode ser desfeita.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            Não
           </Button>
-        </>
-      )}
-      {isMap && <GoogleMapComponent location={location} />}
-    </div>
+          <Button onClick={handleDeleteAccount} color="error" autoFocus>
+            Sim
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 

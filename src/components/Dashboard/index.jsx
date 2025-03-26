@@ -1,29 +1,37 @@
 import React, { useEffect, useState } from 'react';
-import Header from '../Header';
+import toast, { Toaster } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
-import ContactsTable from '../ContactsTable';
 import { getCoordinatesFromAddress } from '../../helpers';
+import { Box, Typography, Paper, Grid } from "@mui/material";
+import GoogleMapComponent from '../Maps';
+import Header from '../Header';
+import ContactList from '../ContactsList';
+import { DialogComponent } from '../Dialog';
+import { ConfirmDeleteDialog } from '../DialogDelete';
 
 const Dashboard = () => {
 
   const navigate = useNavigate();
 
-  const userLogged = JSON.parse(localStorage.getItem('loggedUser'));
+  // @TODO: Edição
+  // @TODO: Exclusão de contato -> Feito
+  // @TODO: Clicar na tabela e abrir o mapa com as coordenadas do contato -> Feito
+  // @TODO: Reformular o form para adicionar uma forma de endereço em tempo real.
+  // @TODO: Adicionar alertas para validações e erros. -> Feito
+
+  const userLogged = JSON.parse(localStorage.getItem('loggedUser')) || null;
   const { id } = userLogged;
-  const arrayContactsUserLocalStorage = JSON.parse(localStorage.getItem(`contacts_user_${id}`)) || [];
-  const [filteredContacts, setFilteredContacts] = useState(arrayContactsUserLocalStorage);
+  const arrayContactsUserLocalStorage = JSON.parse(localStorage?.getItem(`contacts_user_${id}`)) || [];
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [contact, setContact] = useState({});
+  const [search, setSearch] = useState('');
   const [location, setLocation] = useState({
-      lat: -23.55052, // Latitude inicial (São Paulo)
-      lng: -46.633308, // Longitude inicial
-    });
+    lat: -23.55052, // Latitude inicial (São Paulo)
+    lng: -46.633308, // Longitude inicial
+  });
   const [isCEP, setIsCEP] = useState(false);
+  const [cpfError, setCpfError] = useState(false);
   const [formData, setFormData] = useState({
     nome_completo: '',
     cep: '',
@@ -33,15 +41,14 @@ const Dashboard = () => {
     cidade: '',
     latitude: '',
     longitude: '',
+    telefone: '',
+    cpf: '',
     id: Math.random(),
   });
 
-  const handleOpenDialog = () => {
-    setIsDialogOpen(true);
-  };
-
   const handleCloseDialog = () => {
-    setFormData({})
+    setFormData({});
+    setCpfError(false);
     setIsDialogOpen(false);
   };
 
@@ -65,7 +72,7 @@ const Dashboard = () => {
 
       if (data.erro) {
         setFormData({ ...formData, cep, logradouro: '', numero: '' });
-        alert('CEP inválido.');
+        toast.error('CEP inválido.');
         return;
       }
 
@@ -81,11 +88,11 @@ const Dashboard = () => {
     const response = await getCoordinatesFromAddress(formData.cep, event.target.value);
 
     if (response) {
-      setFormData({...formData, latitude: response.latitude, longitude: response.longitude });
-      return
+      setFormData({ ...formData, latitude: response.latitude, longitude: response.longitude });
+      return;
     }
-    throw new Error('Não foi possível encontrar as coordenadas.');
-  }
+    toast.error('Não foi possível encontrar as coordenadas.');
+  };
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -95,7 +102,7 @@ const Dashboard = () => {
 
   // Validação tanto do adicionar, como também será do editar, aqui vai ver se o contato já existe (edição), se sim, vai mudar as informações existentes.
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
 
     const userLogged = JSON.parse(localStorage.getItem('loggedUser'));
@@ -116,12 +123,33 @@ const Dashboard = () => {
     // Salva a lista atualizada no localStorage
     localStorage.setItem(`contacts_user_${id}`, JSON.stringify(arrayContactsUsers));
 
-    setIsDialogOpen(false)
+    toast.success('Contato adicionado com sucesso!');
+    setFormData({});
+    setIsDialogOpen(false);
   };
 
-  const handleSearch = (value) => {
-    const filteredContacts = arrayContactsUserLocalStorage.filter((contacts) => contacts.nome_completo.toLowerCase().includes(value.toLowerCase()));
-    setFilteredContacts(filteredContacts);
+  const handleDeleteContactSubmit = (event) => {
+    event.preventDefault();
+  
+    const userLogged = JSON.parse(localStorage.getItem('loggedUser'));
+    if (!userLogged) return;
+  
+    const { id } = userLogged;
+    const arrayContactsUsers = JSON.parse(localStorage.getItem(`contacts_user_${id}`)) || [];
+  
+    // Encontrar o índice correto do contato a ser excluído
+    const indexToDelete = arrayContactsUsers.findIndex(findContact => findContact.id === contact.id);
+  
+    if (indexToDelete !== -1) {
+      arrayContactsUsers.splice(indexToDelete, 1);
+  
+      // Atualiza a lista no localStorage apenas se um item foi removido
+      localStorage.setItem(`contacts_user_${id}`, JSON.stringify(arrayContactsUsers));
+    }
+
+
+    toast.success('Contato excluído com sucesso!');
+    setIsDeleteDialogOpen(false);
   };
 
 
@@ -133,40 +161,61 @@ const Dashboard = () => {
 
 
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
-      <div style={{ flex: '0 0 40%', backgroundColor: '#f0f0f0', padding: '20px' }}>
-        <Header title='Contatos' isAdd handleOpenDialog={handleOpenDialog} onSearch={handleSearch} />
-        <ContactsTable arrayContactsUserLocalStorage={filteredContacts} setFormData={setFormData} setIsDialogOpen={setIsDialogOpen} setLocation={setLocation} />
-      </div>
-      <div style={{ flex: '0 0 60%', backgroundColor: '#e0e0e0', padding: '20px' }}>
-        <Header title='Mapa' isMap location={location} />
-      </div>
+    <Box>
+      <Toaster position="top-right" />
+      <Header />
+      <Grid container spacing={2} sx={{ height: "100%" }}>
+        {/* Contatos */}
+        <Grid item xs={12} sm={6} md={5} sx={{ minHeight: '400px' }}>
+          <ContactList
+            contacts={arrayContactsUserLocalStorage}
+            onAddContact={setIsDialogOpen}
+            onEditContact={setIsDialogOpen}
+            onDeleteContact={setIsDeleteDialogOpen}
+            onViewOnMap={setLocation}
+            searchQuery={search}
+            setSearchQuery={setSearch}
+            setContact={setContact}
+          />
+        </Grid>
 
-      <Dialog fullWidth open={isDialogOpen} onClose={handleCloseDialog}>
-        <DialogTitle>Adicionar Contato</DialogTitle>
-        <DialogContent>
-          <form id="form-id" method="dialog" onSubmit={handleSubmit}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '10px' }}>
-              <TextField type="text" name="nome_completo" placeholder="Nome Completo" value={formData.nome_completo} onChange={handleInputChange} required />
-              <TextField type="text" name="cep" placeholder="CEP (XXXXX-XXX)" pattern="\d{5}-\d{3}" value={formData.cep} onChange={handleVerifyCEP} onBlur={handleCEP} required />
-              {isCEP && (
-                <>
-                  <TextField type="text" name="rua" placeholder="Rua" value={formData.logradouro} disabled />
-                  <TextField type="text" name="estado" placeholder="Estado" value={formData.estado} disabled />
-                  <TextField type="text" name="cidade" placeholder="Cidade" value={formData.cidade} disabled />
-                  <TextField type="text" name="numero" placeholder="Número" value={formData.numero} onChange={handleInputChange} onBlur={handleNumber} />
-                </>
-              )}
-            </div>
-          </form>
-        </DialogContent>
-        <DialogActions style={{ display: 'flex', justifyContent: 'space-around' }}>
-          <Button onClick={handleCloseDialog}>Cancelar</Button>
-          <Button type="submit" form="form-id">Salvar</Button>
-        </DialogActions>
-      </Dialog>
-    </div>
+        {/* Mapa */}
+        <Grid item xs={12} sm={6} md={7} sx={{ minHeight: '420px ' }}>
+          <Paper elevation={3} sx={{ p: 2, height: "100%", display: "flex", flexDirection: "column" }}>
+            <Typography variant="h6" gutterBottom textAlign="center">
+              Mapa
+            </Typography>
+            <Box sx={{ flex: 1, overflow: "hidden" }}>
+              <GoogleMapComponent location={location} />
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      {/* Dialog para criação e edição */}
+      <DialogComponent
+        formData={formData}
+        isDialogOpen={isDialogOpen}
+        handleCloseDialog={handleCloseDialog}
+        handleInputChange={handleInputChange}
+        handleVerifyCEP={handleVerifyCEP}
+        handleCEP={handleCEP}
+        handleNumber={handleNumber}
+        handleSubmit={handleSubmit}
+        isCEP={isCEP}
+        cpfError={cpfError}
+        setCpfError={setCpfError}
+      />
+
+      {/* Dialog para exclusão */}
+      <ConfirmDeleteDialog
+        open={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteContactSubmit}
+      />
+    </Box>
   );
+
 };
 
 export default Dashboard;

@@ -28,3 +28,68 @@ export async function getCoordinatesFromAddress(cep, numero) {
     return null;
   }
 }
+
+export function formatCPF (cpf) {
+  cpf = cpf.replace(/\D/g, ''); // Remove caracteres não numéricos
+
+  if (cpf.length <= 3) {
+    return cpf;
+  } else if (cpf.length <= 6) {
+    return cpf.replace(/(\d{3})(\d{1,})/, '$1.$2');
+  } else if (cpf.length <= 9) {
+    return cpf.replace(/(\d{3})(\d{3})(\d{1,})/, '$1.$2.$3');
+  } else if (cpf.length <= 11) {
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{1,})/, '$1.$2.$3-$4');
+  }
+
+  return cpf;
+};
+
+// Função para validar CPF
+export function isValidCPF(cpf) {
+  cpf = cpf.replace(/[^\d]+/g, ''); // Remove caracteres não numéricos
+
+  // Verifica se tem 11 dígitos
+  if (cpf.length !== 11) return false;
+
+  // Verifica se todos os números são iguais (ex: 111.111.111.11)
+  if (/^(\d)\1{10}$/.test(cpf)) return false;
+
+  // Validação do primeiro dígito verificador
+  let sum = 0;
+  let weight = 10;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(cpf.charAt(i)) * weight--;
+  }
+  let firstCheckDigit = (sum * 10) % 11;
+  if (firstCheckDigit === 10 || firstCheckDigit === 11) firstCheckDigit = 0;
+  if (firstCheckDigit !== parseInt(cpf.charAt(9))) return false;
+
+  // Validação do segundo dígito verificador
+  sum = 0;
+  weight = 11;
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(cpf.charAt(i)) * weight--;
+  }
+  let secondCheckDigit = (sum * 10) % 11;
+  if (secondCheckDigit === 10 || secondCheckDigit === 11) secondCheckDigit = 0;
+  if (secondCheckDigit !== parseInt(cpf.charAt(10))) return false;
+
+  return true;
+};
+
+export function formatPhone (phone) {
+  phone = phone.replace(/\D/g, ''); // Remove caracteres não numéricos
+
+  if (phone.length <= 2) {
+    return `(${phone}`;
+  } else if (phone.length <= 3) {
+    return `(${phone.slice(0, 2)}) ${phone.slice(2)}`;
+  } else if (phone.length <= 6) {
+    return `(${phone.slice(0, 2)}) ${phone.slice(2, 3)} ${phone.slice(3)}`;
+  } else if (phone.length <= 10) {
+    return `(${phone.slice(0, 2)}) ${phone.slice(2, 3)} ${phone.slice(3, 7)}-${phone.slice(7)}`;
+  } else {
+    return `(${phone.slice(0, 2)}) ${phone.slice(2, 3)} ${phone.slice(3, 7)}-${phone.slice(7, 11)}`;
+  }
+};

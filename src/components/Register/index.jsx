@@ -1,10 +1,9 @@
 import * as React from 'react';
+import toast, { Toaster } from 'react-hot-toast';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
 import CssBaseline from '@mui/material/CssBaseline';
 import Divider from '@mui/material/Divider';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import Link from '@mui/material/Link';
@@ -13,6 +12,7 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
 import { styled } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -59,6 +59,9 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
 }));
 
 export default function SignUp(props) {
+
+  const navigate = useNavigate();
+
   const [emailError, setEmailError] = React.useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
   const [passwordError, setPasswordError] = React.useState(false);
@@ -109,12 +112,22 @@ export default function SignUp(props) {
       return;
     }
     const data = new FormData(event.currentTarget);
-    console.log({
-      name: data.get('name'),
-      lastName: data.get('lastName'),
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+    const id = Math.random();
+
+    const arrayLocalStorage = JSON.parse(localStorage.getItem('users')) || [];
+
+    if (arrayLocalStorage.find((user) => user.email === data.get('email'))) {
+      toast.error('Email já cadastrado.');
+    }
+
+    arrayLocalStorage.push({ nome: data.get('name'), email: data.get('email'), password: data.get('password'), id });
+
+    localStorage.setItem('users', JSON.stringify(arrayLocalStorage));
+    localStorage.setItem(`contacts_user_${id}`, JSON.stringify([]))
+
+    toast.success('Cadastro realizado com sucesso!');
+
+    navigate('/login');
   };
 
   return (
@@ -180,6 +193,7 @@ export default function SignUp(props) {
               />
             </FormControl>
             <Button
+              color='success'
               type="submit"
               fullWidth
               variant="contained"
