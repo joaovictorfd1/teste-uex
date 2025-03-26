@@ -1,3 +1,8 @@
+import axios from 'axios';
+
+const GOOGLE_PLACES_API = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
+const API_KEY = import.meta.env.VITE_MAPS_KEY;
+
 export function getFirstNameAndConvertToUpperCase(fullName) {
   if (!fullName) return '';
 
@@ -8,9 +13,8 @@ export function getFirstNameAndConvertToUpperCase(fullName) {
 }
 
 export async function getCoordinatesFromAddress(cep, numero) {
-  const apiKey = "AIzaSyB8vNPmzLbnqW2rJHXT4ZIOcSu7C4aN9ag";
   const address = `${cep}, ${numero}, Brasil`;
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${API_KEY}`;
 
   try {
     const response = await fetch(url);
@@ -93,3 +97,48 @@ export function formatPhone (phone) {
     return `(${phone.slice(0, 2)}) ${phone.slice(2, 3)} ${phone.slice(3, 7)}-${phone.slice(7, 11)}`;
   }
 };
+
+export function formatCEP (value) {
+  if (!value) return "";
+  
+  // Remove caracteres não numéricos
+  const numericValue = value.replace(/\D/g, "");
+
+  // Aplica a máscara XXXXX-XXX
+  return numericValue.slice(0, 5) + (numericValue.length > 5 ? "-" + numericValue.slice(5, 8) : "");
+};
+
+
+
+// export async function fetchAddressesFromGoogle (input, uf, cidade) {
+//   if (!input) return [];
+
+//   console.log(API_KEY)
+
+//   try {
+//     const response = await axios.get(GOOGLE_PLACES_API, {
+//       params: {
+//         input: `${input}, ${cidade || ''}, ${uf || ''}`,
+//         types: 'address',
+//         components: `country:br`,
+//         key: API_KEY,
+//       },
+//       headers: {
+//         'Access-Control-Allow-Origin': '*',
+//       },
+//     });
+
+//     if (response.data && response.data.predictions) {
+//       return response.data.predictions.map(prediction => ({
+//         id: prediction.place_id,
+//         description: prediction.description,
+//       }));
+//     }
+
+//     return [];
+//   } catch (error) {
+//     console.error('Erro ao buscar endereços:', error);
+//     return [];
+//   }
+// };
+

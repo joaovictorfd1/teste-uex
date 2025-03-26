@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   Box, 
   Card, 
@@ -26,7 +26,7 @@ import {
 import { getFirstNameAndConvertToUpperCase } from '../../helpers';
 
 const ContactList = ({ 
-  contacts, 
+  contacts,
   onAddContact, 
   onEditContact, 
   onDeleteContact, 
@@ -34,6 +34,7 @@ const ContactList = ({
   searchQuery,
   setSearchQuery,
   setContact,
+  setFormData,
 }) => {
   
   const filteredContacts = contacts.filter(contact => 
@@ -162,7 +163,10 @@ const ContactList = ({
                           <IconButton 
                             size="small" 
                             color="primary" 
-                            onClick={() => onEditContact(true)}
+                            onClick={() => {
+                              setFormData(contact);
+                              onEditContact(true)
+                            }}
                           >
                             <EditIcon fontSize="small" />
                           </IconButton>

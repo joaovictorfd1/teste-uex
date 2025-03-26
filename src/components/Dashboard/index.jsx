@@ -13,7 +13,7 @@ const Dashboard = () => {
 
   const navigate = useNavigate();
 
-  // @TODO: Edição
+  // @TODO: Edição -> Feito
   // @TODO: Exclusão de contato -> Feito
   // @TODO: Clicar na tabela e abrir o mapa com as coordenadas do contato -> Feito
   // @TODO: Reformular o form para adicionar uma forma de endereço em tempo real.
@@ -88,7 +88,7 @@ const Dashboard = () => {
     const response = await getCoordinatesFromAddress(formData.cep, event.target.value);
 
     if (response) {
-      setFormData({ ...formData, latitude: response.latitude, longitude: response.longitude });
+      setFormData({ ...formData, numero: event.target.value, latitude: response.latitude, longitude: response.longitude });
       return;
     }
     toast.error('Não foi possível encontrar as coordenadas.');
@@ -164,7 +164,7 @@ const Dashboard = () => {
     <Box>
       <Toaster position="top-right" />
       <Header />
-      <Grid container spacing={2} sx={{ height: "100%" }}>
+      <Grid container spacing={2} sx={{ minHeight: "100vh", overflow: 'hidden' }}>
         {/* Contatos */}
         <Grid item xs={12} sm={6} md={5} sx={{ minHeight: '400px' }}>
           <ContactList
@@ -176,6 +176,7 @@ const Dashboard = () => {
             searchQuery={search}
             setSearchQuery={setSearch}
             setContact={setContact}
+            setFormData={setFormData}
           />
         </Grid>
 
