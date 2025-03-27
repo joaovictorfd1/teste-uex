@@ -20,6 +20,7 @@ const Dashboard = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [contact, setContact] = useState({});
   const [search, setSearch] = useState('');
+  const [resetLocation, setResetLocation] = useState(false);
   const [location, setLocation] = useState({
     lat: -23.55052, // Latitude inicial (São Paulo)
     lng: -46.633308, // Longitude inicial
@@ -126,27 +127,38 @@ const Dashboard = () => {
 
   const handleDeleteContactSubmit = (event) => {
     event.preventDefault();
-  
+
     const userLogged = JSON.parse(localStorage.getItem('loggedUser'));
     if (!userLogged) return;
-  
+
     const { id } = userLogged;
     const arrayContactsUsers = JSON.parse(localStorage.getItem(`contacts_user_${id}`)) || [];
-  
+
     // Encontrar o índice correto do contato a ser excluído
     const indexToDelete = arrayContactsUsers.findIndex(findContact => findContact.id === contact.id);
-  
+
     if (indexToDelete !== -1) {
       arrayContactsUsers.splice(indexToDelete, 1);
-  
+
       // Atualiza a lista no localStorage apenas se um item foi removido
       localStorage.setItem(`contacts_user_${id}`, JSON.stringify(arrayContactsUsers));
     }
 
 
     toast.success('Contato excluído com sucesso!');
+    setResetLocation(true);
     setIsDeleteDialogOpen(false);
   };
+
+
+  useEffect(() => {
+    if (resetLocation) {
+      setLocation({
+        lat: -23.55052, // Latitude inicial (São Paulo)
+        lng: -46.633308, // Longitude inicial
+      });
+    }
+  }, [resetLocation]);
 
 
   useEffect(() => {

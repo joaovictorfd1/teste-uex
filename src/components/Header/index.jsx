@@ -18,6 +18,8 @@ const Header = () => {
 
     const removedUser = users.filter((user) => user.id !== id);
     localStorage.setItem("users", JSON.stringify(removedUser));
+    localStorage.removeItem(`contacts_user_${id}`);
+    localStorage.removeItem("loggedUser");
     navigate('/login');
   };
 
