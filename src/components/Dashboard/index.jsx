@@ -26,6 +26,7 @@ const Dashboard = () => {
   });
   const [isCEP, setIsCEP] = useState(false);
   const [cpfError, setCpfError] = useState(false);
+  const [cpfIsExisting, setIsCPFExisting] = useState(false);
   const [formData, setFormData] = useState({
     nome_completo: '',
     cep: '',
@@ -92,9 +93,6 @@ const Dashboard = () => {
     const { name, value } = event.target;
     setFormData({ ...formData, [name]: value });
   };
-
-
-  // Validação tanto do adicionar, como também será do editar, aqui vai ver se o contato já existe (edição), se sim, vai mudar as informações existentes.
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -193,6 +191,7 @@ const Dashboard = () => {
 
       {/* Dialog para criação e edição */}
       <DialogComponent
+        contactsList={arrayContactsUserLocalStorage}
         formData={formData}
         isDialogOpen={isDialogOpen}
         handleCloseDialog={handleCloseDialog}
@@ -204,6 +203,8 @@ const Dashboard = () => {
         isCEP={isCEP}
         cpfError={cpfError}
         setCpfError={setCpfError}
+        cpfIsExisting={cpfIsExisting}
+        setIsCPFExisting={setIsCPFExisting}
       />
 
       {/* Dialog para exclusão */}

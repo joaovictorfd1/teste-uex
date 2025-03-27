@@ -7,6 +7,7 @@ import { formatCEP, formatCPF, formatPhone, isValidCPF } from '../../helpers';
 import { useMemo } from 'react';
 
 export const DialogComponent = ({
+  contactsList,
   formData,
   isDialogOpen,
   handleCloseDialog,
@@ -16,19 +17,42 @@ export const DialogComponent = ({
   handleNumber,
   cpfError,
   setCpfError,
+  cpfIsExisting,
+  setIsCPFExisting,
 }) => {
 
   const handleCPFChange = (e) => {
     const { value } = e.target;
     const formattedCPF = formatCPF(value);
   
-    if (!value) {
-      setCpfError(false); // Reseta o erro se o campo estiver vazio
-    } else {
-      setCpfError(!isValidCPF(formattedCPF)); // Valida o CPF
+    // Sempre atualizar o valor antes das verificações
+    handleInputChange({ target: { name: 'cpf', value: formattedCPF } });
+  
+    // Se o campo estiver vazio, resetar os erros
+    if (!formattedCPF) {
+      setCpfError(false);
+      setIsCPFExisting(false);
+      return;
     }
   
-    handleInputChange({ target: { name: 'cpf', value: formattedCPF } });
+    // Se o CPF for menor que 14 caracteres ou inválido, ativar erro
+    if (formattedCPF.length < 14 || !isValidCPF(formattedCPF)) {
+      setCpfError(true);
+      setIsCPFExisting(false);
+      return;
+    }
+  
+    // Se o CPF já existir na lista, ativar erro de duplicidade
+    const isExistingContact = contactsList.some(contact => contact.cpf === formattedCPF);
+    if (isExistingContact) {
+      setIsCPFExisting(true);
+      setCpfError(false); // Prioriza o erro de duplicidade
+      return;
+    }
+  
+    // Resetar os erros caso tudo esteja correto
+    setCpfError(false);
+    setIsCPFExisting(false);
   };
 
   const handleCEPChange = (e) => {
@@ -63,9 +87,10 @@ export const DialogComponent = ({
               value={formData.cpf}
               onChange={handleCPFChange}
               required
-              error={cpfError}
-              helperText={cpfError ? "CPF inválido" : ""}
+              error={cpfError || cpfIsExisting}
+              helperText={cpfError ? "CPF inválido" : cpfIsExisting ? 'CPF já existe' : ""}
               disabled={isEdit}
+              inputProps={{ maxLength: 14 }}
             />
             <TextField
               fullWidth
@@ -90,7 +115,7 @@ export const DialogComponent = ({
       </DialogContent>
       <DialogActions sx={{ display: "flex", justifyContent: "space-around" }}>
         <Button type='button' variant='text' color='error' onClick={handleCloseDialog}>Cancelar</Button>
-        <Button type="submit" variant='contained' form="form-id" disabled={cpfError}> {/* Impede envio se CPF for inválido */}
+        <Button type="submit" variant='contained' form="form-id" disabled={cpfError || cpfIsExisting}>
           {`${isEdit? 'Salvar' : 'Cadastrar'} Contato`}
         </Button>
       </DialogActions>
